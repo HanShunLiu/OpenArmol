@@ -32,23 +32,24 @@ def calc_len(p1, p2):
     return math.sqrt(((p2[0] - p1[1])**2) + ((p2[0] - p1[1])**2))
 
 # Calculate angle of line segment from origin to (x, y)
-# TODO: Make calculations with double var to avoid dependance on origin and x axis
-def pos_to_ang(x, y):
-    return math.tan(y/x)
+# Uses angle between 2 vector formula, p2 is where p1 and p3 originate
+def pos_to_ang(p1, p2, p3):
+    vec1 = [p1[0] - p2[0], p1[1] - p2[1]]
+    vec2 = [p3[0] - p2[0], p3[1] - p2[1]]
+    return math.acos((vec1[0]*vec2[0] + vec1[1]*vec2[1]) / (calc_len([0, 0], vec1) * calc_len([0, 0], vec2)))
 
 # Calculate position of line segment of length r at angle a
-# TODO: Make calculations with double var to avoid dependance on origin and x axis
-def ang_to_pos(r, a):
-    return [r * math.acos(a), r * math.asin(a)]
+def ang_to_pos(r, a, init_pos, ang_comp):
+    return [(r + ang_comp) * math.acos(a) + init_pos[0], (r + ang_comp) * math.asin(a) + init_pos[1]]
 
 def calc_arm_pos(x, y):
     new_arm_pos = [[arm1_pos[0], arm1_pos[1]], [arm2_pos[0], arm2_pos[1]], [arm3_pos[0], arm3_pos[1]]]
     new_arm_ang = [arm1_ang, arm2_ang, arm3_ang]
-    target_ang = pos_to_ang(x, y)
+    target_ang = pos_to_ang([0, 1], [0, 0], [x, y])
 
     # Calc arm1 position
     while calc_len([x, y], new_arm_pos[0]) > (arm2_len + arm3_len):
         new_arm_ang[0] = (target_ang + new_arm_ang[0]) / 2
-        new_arm_pos[0] = ang_to_pos(arm3_len, new_arm_ang[0])
+        new_arm_pos[0] = ang_to_pos(arm3_len, new_arm_ang[0], [0, 0], 0)
 
     # TODO: Add logic to move arm2 and arm3

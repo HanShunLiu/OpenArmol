@@ -62,10 +62,12 @@ def calc_arm_pos(x, y, z):
     new_ang[0] = t
 
     # Update first hinge's angle and position
+    new_ang[1] = (3 * math.pi) / 4
+    new_pos[1] = [arm_len[1] * math.cos(new_ang[1]), arm_len[1] * math.sin(new_ang[1])]
     hinge1_target_len = calc_len([r, z], new_pos[1])
     # Ensure arm can reach target
     while hinge1_target_len > (arm_len[2] + arm_len[3]):
-        new_ang[1] = (target_ang + new_ang[0]) / 2
+        new_ang[1] -= (new_ang[1] - target_ang) * 0.1
         new_pos[1] = [arm_len[1] * math.cos(new_ang[1]), arm_len[1] * math.sin(new_ang[1])]
         hinge1_target_len = calc_len([r, z], new_pos[1])
 

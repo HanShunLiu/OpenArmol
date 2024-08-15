@@ -1,55 +1,82 @@
+import copy
 import math
 
-# Arm 1: First segment of arm, connected to base
-arm1_len = 1.5
-arm1_pos = [0.0, arm1_len]
-arm1_ang = 90.0
+# Arm angle and data
+# Base rotater, first hinge, second second, third hinge, fourth hinge, hand rotater
+arm_len = [0.0, 1.5, 1.0, 1.0, 0.0, 0.0]
+arm_ang = [90.0, 90.0, 180.0, 180.0, 180.0, 0.0]
+arm_pos = [[0.0, 0.0],
+           [arm_len[1], 0.0],
+           [arm_len[1] + arm_len[2], 0.0],
+           [arm_len[1] + arm_len[2] + arm_len[3], 0.0],
+           [arm_len[1] + arm_len[2] + arm_len[3], 0.0],
+           [arm_len[1] + arm_len[2] + arm_len[3], 0.0]]
 
-# Arm 2: Second segment of arm, in the middle
-arm2_len = 1.0
-arm2_pos = [0.0, arm1_len + arm2_len]
-arm2_ang = 90.0
-
-# Arm 3: Third segment of arm, connected to hand
-arm3_len = 1.0
-arm3_pos = [0.0, arm1_len + arm2_len + arm3_len]
-arm3_ang = 90.0
-
-car_pos = [[0.0, 0.0]] # List of all cartesional positions
-pol_pos = [[0.0, 0.0]] # List of all polar positions
-
-# Convert cartensional cords to polar
+# Convert cartesian cords to polar
 def car_to_pol(x, y):
     r = math.sqrt((x**2) + (y**2))
     t = math.atan(y/x)
-    return [r, t]
+    return r, t
 
-# Convert degrees to radians
-def deg_to_rad(x):
-    return (x * math.pi) / 180
+# Convert cylindrical cords to cartesian
+def cyl_to_car(r, t, z):
+    x = r * math.cos(t)
+    y = r * math.sin(t)
+    return [x, y, z]
 
+# Calculate length of line segment between 2 points
 def calc_len(p1, p2):
     return math.sqrt(((p2[0] - p1[1])**2) + ((p2[0] - p1[1])**2))
 
-# Calculate angle of line segment from origin to (x, y)
-# Uses angle between 2 vector formula, p2 is where p1 and p3 originate
-def pos_to_ang(p1, p2, p3):
-    vec1 = [p1[0] - p2[0], p1[1] - p2[1]]
-    vec2 = [p3[0] - p2[0], p3[1] - p2[1]]
-    return math.acos((vec1[0]*vec2[0] + vec1[1]*vec2[1]) / (calc_len([0, 0], vec1) * calc_len([0, 0], vec2)))
+# Calculate angle using Cosine Rule
+def calc_ang(a, b, c):
+    num = (-1 * a**2) + b**2 + c**2
+    den = 2 * b * c
+    return math.acos(num/den)
 
-# Calculate position of line segment of length r at angle a
-def ang_to_pos(r, a, init_pos, ang_comp):
-    return [(r + ang_comp) * math.acos(a) + init_pos[0], (r + ang_comp) * math.asin(a) + init_pos[1]]
+# Returns the position of the end points of each segment of the arm in cartesian format
+def car_pos():
+    car_pos = []
+    for pos in arm_pos:
+        car_pos.append(cyl_to_car(pos[0], arm_ang[0], pos[1]))
+    return car_pos
 
-def calc_arm_pos(x, y):
-    new_arm_pos = [[arm1_pos[0], arm1_pos[1]], [arm2_pos[0], arm2_pos[1]], [arm3_pos[0], arm3_pos[1]]]
-    new_arm_ang = [arm1_ang, arm2_ang, arm3_ang]
-    target_ang = pos_to_ang([0, 1], [0, 0], [x, y])
+def calc_arm_pos(x, y, z):
+    new_ang = copy.deepcopy(arm_ang)  # Copy all arm angles
+    new_pos = copy.deepcopy(arm_pos)  # Copy all arm positions
 
-    # Calc arm1 position
-    while calc_len([x, y], new_arm_pos[0]) > (arm2_len + arm3_len):
-        new_arm_ang[0] = (target_ang + new_arm_ang[0]) / 2
-        new_arm_pos[0] = ang_to_pos(arm3_len, new_arm_ang[0], [0, 0], 0)
+    r, t = car_to_pol(x, y)  # Turn cartersional to polar cords
 
-    # TODO: Add logic to move arm2 and arm3
+    target_ang = math.atan(t/r)  # Angle above table of the target
+    target_len = calc_len([0, 0], [r, z])  # Length from base to target
+
+    # Update base rotater's angle, position remains constant
+    new_ang[0] = t
+
+    # Update first hinge's angle and position
+    hinge1_target_len = calc_len([r, z], new_pos[1])
+    # Ensure arm can reach target
+    while hinge1_target_len > (arm_len[2] + arm_len[3]):
+        new_ang[1] = (target_ang + new_ang[0]) / 2
+        new_pos[1] = [arm_len[1] * math.cos(new_ang[1]), arm_len[1] * math.sin(new_ang[1])]
+        hinge1_target_len = calc_len([r, z], new_pos[1])
+
+    # Update second hinge's angle and position
+    new_ang[2] = calc_ang(target_len, arm_len[1], arm_len[2]) + calc_ang(arm_len[3], arm_len[2], hinge1_target_len)
+    new_pos[2] = [new_pos[1][0] + arm_len[2] * math.cos(new_ang[1] + new_ang[2] - 180),
+                  new_pos[1][1] + arm_len[2] * math.sin(new_ang[1] + new_ang[2] - 180)]
+
+    # Update third hinge's angle and position
+    new_ang[3] = calc_ang(hinge1_target_len, arm_len[2], arm_len[3])
+    new_pos[3] = [new_pos[2][0] + arm_len[3] * math.cos(new_ang[1] + new_ang[2] + new_ang[3] - 360),
+                  new_pos[2][1] + arm_len[3] * math.sin(new_ang[1] + new_ang[2] + new_ang[3] - 360)]
+
+    # Update fourth hinge's angle and positon
+    new_ang[4] = 270 - new_ang[1] - new_ang[2] - new_ang[3]
+    new_pos[4] = new_pos[3]
+
+    # Update hand rotater's angle and position
+    new_ang[5] = 180 - new_ang[0]
+    new_pos[5] = new_pos[4]
+
+    return new_ang, new_pos

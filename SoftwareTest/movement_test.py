@@ -1,6 +1,9 @@
 import copy
 import math
-from types import new_class
+
+# Known problems:
+# Can't handle the cords input being 0
+# Can't handle negative cords properly (treats like positive)
 
 # Arm angle and data
 # Base rotater, first hinge, second second, third hinge, fourth hinge, hand rotater

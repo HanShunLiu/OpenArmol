@@ -1,9 +1,10 @@
 import movement_test as mt
 
 # Testing Code
-lis = [[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1], [0, 1, 1], [1, 0, 1], [0, -1, 1], [-1, 0, 1]]
+lis = [[1, 1, 1], [-1, 1, 1], [1, -1, 1], [-1, -1, 1], [0, 1, 1], [1, 0, 1], [0, -1, 1], [-1, 0, 1], [0, 0, 1]]
 for x in lis:
     x1, x2 = mt.calc_arm_pos(x[0], x[1], x[2])
+
     new_cord = []
     for y in x2:
         z = mt.cyl_to_car(y[0], x1[0], y[1])

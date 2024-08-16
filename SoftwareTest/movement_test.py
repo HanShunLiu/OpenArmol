@@ -1,9 +1,9 @@
 import copy
 import math
 
-# Known problems:
-# Can't handle the cords input being 0
-# Can't handle negative cords properly (treats like positive)
+# Known Bugs:
+# Can't handle (x,y) = (0,0). Problem at line 58
+# (0, -1, 1) doesn't work, goes to (0, 1, 1) instead
 
 # Arm angle and data
 # Base rotater, first hinge, second second, third hinge, fourth hinge, hand rotater
@@ -19,7 +19,11 @@ arm_pos = [[0.0, 0.0],
 # Convert cartesian cords to polar
 def car_to_pol(x, y):
     r = math.sqrt((x**2) + (y**2))
-    t = math.atan(y/x)
+    t = math.pi / 2
+    if x > 0:
+        t = math.atan(y/x)
+    elif x < 0:
+        t = math.atan(y/x) + math.pi
     return r, t
 
 # Convert cylindrical cords to cartesian
@@ -43,10 +47,10 @@ def calc_ang(a, b, c):
 
 # Returns the position of the end points of each segment of the arm in cartesian format
 def car_pos():
-    car_pos = []
-    for pos in arm_pos:
-        car_pos.append(cyl_to_car(pos[0], arm_ang[0], pos[1]))
-    return car_pos
+    pos = []
+    for p in arm_pos:
+        pos.append(cyl_to_car(p[0], arm_ang[0], p[1]))
+    return pos
 
 # Calculate the arm angle and positions to reach cartesian cords (x,y,z)
 def calc_arm_pos(x, y, z):

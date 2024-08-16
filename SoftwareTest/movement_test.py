@@ -1,10 +1,6 @@
 import copy
 import math
 
-# Known Bugs:
-# Can't handle (x,y) = (0,0). Problem at line 58
-# (0, -1, 1) doesn't work, goes to (0, 1, 1) instead
-
 # Arm angle and data
 # Base rotater, first hinge, second second, third hinge, fourth hinge, hand rotater
 arm_len = [0.0, 1.5, 1.0, 1.0, 0.0, 0.0]
@@ -19,11 +15,20 @@ arm_pos = [[0.0, 0.0],
 # Convert cartesian cords to polar
 def car_to_pol(x, y):
     r = math.sqrt((x**2) + (y**2))
-    t = math.pi / 2
+    t = 0.0  # Default value if y and x == 0
+
+    # 90 or 270 degrees if y != 0 and x == 0
+    if y > 0:
+        t = math.pi / 2
+    elif y < 0:
+        t = (3 * math.pi) / 2
+
+    # Prevent divide by zero error
     if x > 0:
         t = math.atan(y/x)
     elif x < 0:
         t = math.atan(y/x) + math.pi
+
     return r, t
 
 # Convert cylindrical cords to cartesian
@@ -59,7 +64,9 @@ def calc_arm_pos(x, y, z):
 
     r, t = car_to_pol(x, y)  # Turn cartersional to polar cords
 
-    target_ang = math.atan(t/r)  # Angle above table of the target
+    target_ang = math.pi / 2  # Default value if r == 0
+    if r != 0.0:
+        target_ang = math.atan(t/r)  # Angle above table of the target
     target_len = calc_len([0, 0], [r, z])  # Length from base to target
 
     # Update base rotater's angle, position remains constant

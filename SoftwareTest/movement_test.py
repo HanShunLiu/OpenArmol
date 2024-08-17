@@ -3,7 +3,7 @@ import math
 
 # Arm angle and data
 # Base rotater, first hinge, second second, third hinge, fourth hinge, hand rotater
-arm_len = [0.0, 1.5, 1.0, 1.0, 0.0, 0.0]
+arm_len = [0.0, 0.75, 0.5, 0.5, 0.0, 0.0]
 arm_ang = [math.pi/2, math.pi/2, math.pi, math.pi, math.pi, 0.0]
 arm_pos = [[0.0, 0.0],
            [0.0, arm_len[1]],
@@ -66,7 +66,7 @@ def calc_arm_pos(x, y, z):
 
     target_ang = math.pi / 2  # Default value if r == 0
     if r != 0.0:
-        target_ang = math.atan(t/r)  # Angle above table of the target
+        target_ang = math.atan(z/r)  # Angle above table of the target
     target_len = calc_len([0, 0], [r, z])  # Length from base to target
 
     # Update base rotater's angle, position remains constant
@@ -78,6 +78,11 @@ def calc_arm_pos(x, y, z):
     hinge1_target_len = calc_len([r, z], new_pos[1])
     # Ensure arm can reach target
     while hinge1_target_len > (arm_len[2] + arm_len[3]):
+ #       print("1: " + str((new_ang[1] - target_ang) * 0.1))
+  #      print("2: " + str(hinge1_target_len))
+   #     print("3: " + str(arm_len[2] + arm_len[3]))
+    #    print("4: " + str(new_ang[1]))
+     #   print("5: " + str(target_ang))
         new_ang[1] -= (new_ang[1] - target_ang) * 0.1
         new_pos[1] = [arm_len[1] * math.cos(new_ang[1]), arm_len[1] * math.sin(new_ang[1])]
         hinge1_target_len = calc_len([r, z], new_pos[1])

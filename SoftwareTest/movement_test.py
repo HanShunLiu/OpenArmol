@@ -18,7 +18,7 @@ def car_to_pol(x, y):
     t = 0.0  # Default value if y and x == 0
 
     # 90 or 270 degrees if y != 0 and x == 0
-    if y > 0:
+    if y >= 0:
         t = math.pi / 2
     elif y < 0:
         t = (3 * math.pi) / 2

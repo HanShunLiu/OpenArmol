@@ -115,6 +115,28 @@ def calc_arm_pos(ang_lis):
 
     return [arm0_pos, arm1_pos, arm2_pos, arm3_pos, arm4_pos, arm5_pos]
 
-# Returns a list of angles and positions
-def arm_move_lis(target, step):
-    pass
+# Returns a list of angles for the arm to move to a location in step steps
+def move_lis_ang(target, step):
+    ang_move_lis = [[]]
+    new_ang = calc_arm_ang(target[0], target[1], target[2])
+
+    # Calculate increment per angle
+    ang_step = []
+    for i in range(len(arm_ang)):
+        ang_step.append((new_ang[i] - arm_ang[i]) / step)
+        ang_move_lis[0].append(arm_ang[i] + ang_step[i])
+
+    # Calculate each step increments
+    for i in range(1, step):
+        ang_move_lis.append([])
+        for j in range(len(arm_ang)):
+            ang_move_lis[i].append(ang_move_lis[i - 1] + ang_step[j])
+
+    return ang_move_lis
+
+# Returns a list of positions for the arm to move to a location in x steps (determined by ang_move_lis)
+def move_lis_pos(ang_move_lis):
+    pos_move_lis = []
+    for ang_lis in ang_move_lis:
+        pos_move_lis.append(calc_arm_pos(ang_lis))
+    return pos_move_lis
